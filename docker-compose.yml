@@ -1,0 +1,69 @@
+services:
+  access-control-service:
+    image: access-control-service:latest
+    container_name: access-control-service
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
+
+  user-management-service:
+    image: user-management-service:latest
+    container_name: user-management-service
+    ports:
+      - "8001:8001"
+    networks:
+      - backend
+    depends_on:
+      - rabbitmq
+      - redis
+      - postgres
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    security_opt:
+      - no-new-privileges
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+    volumes:
+      - redis_data:/data
+    security_opt:
+      - no-new-privileges
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_has_been_secured
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges
+
+volumes:
+  rabbitmq_data:
+  redis_data:
+  postgres_data:
+
+networks:
+  backend:
+    driver: bridge
